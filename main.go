@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
@@ -81,7 +82,9 @@ type RegisterCommand struct {
 
 func main() {
 	// Create a new Discord session
-	token := "OTQ3OTY5MjQwNjAwODM0MTE4.GN74y-.H1hs_p7Cs9TTRacd84gH-LGTMSctG0bZqEK7fw"
+	var token string
+	tmp, _ := ioutil.ReadFile("token.txt")
+	token = string(tmp)
 
 	tmpDG, err := discordgo.New("Bot " + token)
 	dg = tmpDG
