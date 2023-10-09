@@ -1,11 +1,13 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
+	"GDCIO/commands"
+	info "GDCIO/commands/info"
+	mine "GDCIO/commands/mine"
+	move "GDCIO/commands/move"
+	reg "GDCIO/commands/register"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,68 +19,6 @@ var BotChannel string = "947971806617272390"
 var BotGuild string = "652300397859569694"
 
 var dg *discordgo.Session
-
-var commands = []*discordgo.ApplicationCommand{
-	{
-		Name:        "move",
-		Description: "Make the bot say something",
-		Options: []*discordgo.ApplicationCommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "direction",
-				Description: "North, East, South, West",
-				Required:    true,
-				Choices: []*discordgo.ApplicationCommandOptionChoice{
-					{
-						Name:  "North",
-						Value: "North",
-					},
-					{
-						Name:  "East",
-						Value: "East",
-					},
-					{
-						Name:  "South",
-						Value: "South",
-					},
-					{
-						Name:  "West",
-						Value: "West",
-					},
-				},
-			},
-		},
-	},
-	{
-		Name:        "mine",
-		Description: "action to mine stone or ore",
-		Options: []*discordgo.ApplicationCommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "target",
-				Description: "What to mine? copper,stone",
-				Required:    true,
-			},
-		},
-	},
-	{
-		Name:        "register",
-		Description: "Register if you did not play yet",
-		Options: []*discordgo.ApplicationCommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "playername",
-				Description: "The name of your character",
-				Required:    true,
-			},
-		},
-	},
-}
-
-type RegisterCommand struct {
-	OwnerId    string `json:"OwnerId"`
-	PlayerName string `json:"PlayerName"`
-}
 
 func main() {
 	// Create a new Discord session
@@ -115,7 +55,7 @@ func main() {
 }
 
 func registerCommands(s *discordgo.Session) {
-	for _, command := range commands {
+	for _, command := range commands.GetCommands() {
 		_, err := s.ApplicationCommandCreate(s.State.User.ID, BotGuild, command)
 		if err != nil {
 			fmt.Println("Error creating command:", err)
@@ -126,45 +66,19 @@ func registerCommands(s *discordgo.Session) {
 func onInteractionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if i.Type == discordgo.InteractionApplicationCommand {
 		command := i.ApplicationCommandData()
+		switch command.Name {
+		case "move":
+			move.HandleMoveAppCommand(s, i)
+		case "mine":
+			mine.HandleMineAppCommand(s, i)
+		case "register":
+			reg.HandleRegisterAppCommand(s, i)
+		case "listactions":
+			info.HandleListActionsAppCommand(s, i)
+		case "char":
+			info.HandleListCharStatsAppCommand(s, i)
+		}
 
-		if command.Name == "move" {
-			message := "Trying to move: " + command.Options[0].StringValue()
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: message,
-				},
-			})
-		}
-		if command.Name == "mine" {
-			message := "definitly not implemented"
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: message,
-				},
-			})
-		}
-		if command.Name == "register" {
-			regCommand := RegisterCommand{
-				OwnerId:    i.Interaction.Member.User.ID,
-				PlayerName: command.Options[0].StringValue(),
-			}
-			payload, _ := json.Marshal(regCommand)
-			resp, err := http.Post("http://127.0.0.1:8080/command/register", "application/json", bytes.NewBuffer(payload))
-			if err != nil {
-				fmt.Println("Error making POST request:", err)
-				return
-			}
-			defer resp.Body.Close()
-			message := "definitly not implemented"
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: message,
-				},
-			})
-		}
 	}
 }
 
