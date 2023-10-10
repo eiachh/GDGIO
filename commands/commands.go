@@ -1,6 +1,7 @@
 package commands
 
 import (
+	forage "GDCIO/commands/forage"
 	info "GDCIO/commands/info"
 	mine "GDCIO/commands/mine"
 	move "GDCIO/commands/move"
@@ -15,6 +16,7 @@ var commands = []*discordgo.ApplicationCommand{
 	move.GetMoveAppCommand(),
 	info.GetListActionsAppCommand(),
 	info.GetListCharStatsAppCommand(),
+	forage.GetForageAppCommand(),
 }
 
 func GetCommands() []*discordgo.ApplicationCommand {

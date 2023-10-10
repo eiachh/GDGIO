@@ -2,6 +2,7 @@ package main
 
 import (
 	"GDCIO/commands"
+	forage "GDCIO/commands/forage"
 	info "GDCIO/commands/info"
 	mine "GDCIO/commands/mine"
 	move "GDCIO/commands/move"
@@ -71,6 +72,8 @@ func onInteractionCreate(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			move.HandleMoveAppCommand(s, i)
 		case "mine":
 			mine.HandleMineAppCommand(s, i)
+		case "forage":
+			forage.HandleForageAppCommand(s, i)
 		case "register":
 			reg.HandleRegisterAppCommand(s, i)
 		case "listactions":
